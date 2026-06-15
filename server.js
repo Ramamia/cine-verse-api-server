@@ -5,6 +5,7 @@ import dotenv from "dotenv";
 import pool from "./config/db.js";
 import authRoutes from "./routes/auth.js";
 import userRoutes from "./routes/users.js";
+import movieRoutes from "./routes/movies.js";
 
 dotenv.config();
 
@@ -18,6 +19,7 @@ app.use(morgan("dev"));
 // okay so here are our routes
 app.use("/api/auth", authRoutes);
 app.use("/api/users", userRoutes);
+app.use("/api/movies", movieRoutes);
 
 // test endpoint just to make sure it works
 app.get("/", (req, res) => {
