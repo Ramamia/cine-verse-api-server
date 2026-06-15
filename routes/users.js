@@ -35,6 +35,18 @@ router.get("/me", authenticateToken, async (req, res) => {
         // attach the top movies array to the user object
         user.top_movies = topMoviesResult.rows;
 
+        // grab their followers list
+        const followersResult = await pool.query(
+            `SELECT u.id, u.nickname, u.profile_picture_url 
+             FROM users u 
+             JOIN followers f ON u.id = f.follower_id 
+             WHERE f.following_id = $1`,
+            [userId]
+        );
+
+        user.followers = followersResult.rows;
+        user.follower_count = followersResult.rows.length;
+
         res.json({ user });
     } catch (error) {
         console.error("Error fetching user profile:", error);
@@ -101,6 +113,50 @@ router.post("/top-movies", authenticateToken, async (req, res) => {
         res.json({ message: "Top movies updated successfully!" });
     } catch (error) {
         console.error("Error updating top movies:", error);
+        res.status(500).json({ error: "Internal server error" });
+    }
+});
+
+// okay so here we let a user follow or unfollow someone
+// POST /api/users/follow/:id
+router.post("/follow/:id", authenticateToken, async (req, res) => {
+    try {
+        const followerId = req.user.id;
+        const followingId = req.params.id;
+
+        if (followerId === followingId) {
+            return res.status(400).json({ error: "You cannot follow yourself" });
+        }
+
+        // check if the user to follow actually exists
+        const userCheck = await pool.query("SELECT id FROM users WHERE id = $1", [followingId]);
+        if (userCheck.rows.length === 0) {
+            return res.status(404).json({ error: "User to follow not found" });
+        }
+
+        // check if already following
+        const followCheck = await pool.query(
+            "SELECT * FROM followers WHERE follower_id = $1 AND following_id = $2",
+            [followerId, followingId]
+        );
+
+        if (followCheck.rows.length > 0) {
+            // unfollow them since they already follow
+            await pool.query(
+                "DELETE FROM followers WHERE follower_id = $1 AND following_id = $2",
+                [followerId, followingId]
+            );
+            res.json({ message: "Successfully unfollowed user" });
+        } else {
+            // follow them
+            await pool.query(
+                "INSERT INTO followers (follower_id, following_id) VALUES ($1, $2)",
+                [followerId, followingId]
+            );
+            res.json({ message: "Successfully followed user" });
+        }
+    } catch (error) {
+        console.error("Error toggling follow:", error);
         res.status(500).json({ error: "Internal server error" });
     }
 });
