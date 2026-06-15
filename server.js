@@ -1,10 +1,14 @@
 import express from "express";
 import pool from "./config/db.js";
+import authRoutes from "./routes/auth.js";
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
 app.use(express.json());
+
+// Routes
+app.use("/api/auth", authRoutes);
 
 //test endpoint
 app.get("/", (req, res) => {
