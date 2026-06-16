@@ -9,13 +9,14 @@ This documentation provides frontend developers with comprehensive guidelines, e
 ## Table of Contents
 1. [Architecture Overview](#architecture-overview)
 2. [Database Schema](#database-schema)
-3. [Prerequisites & Installation](#prerequisites--installation)
+3. [Prerequisites and Installation](#prerequisites-and-installation)
 4. [Environment Configuration](#environment-configuration)
 5. [API Reference](#api-reference)
     - [Authentication](#authentication)
     - [Users & Profiles](#users--profiles)
     - [Movies & Media](#movies--media)
     - [Social Feed & Reviews](#social-feed--reviews)
+    - [UI Assets](#ui-assets)
 6. [Static Assets & Cloud Integration](#static-assets--cloud-integration)
 
 ---
@@ -43,7 +44,7 @@ Understanding the database is critical for interacting with the API. The system 
 
 ---
 
-## Prerequisites & Installation
+## Prerequisites and Installation
 
 Ensure you have the following installed on your machine:
 - Node.js (v16.x or higher)
@@ -113,6 +114,7 @@ Format: `Authorization: Bearer <your_token>`
 #### 1. Register User
 - **Method:** `POST`
 - **Path:** `/api/auth/register`
+- **Description:** Registers a new user. Performs a case-insensitive check on the email to prevent duplicate registration.
 - **Request Body:**
   ```json
   {
@@ -137,6 +139,7 @@ Format: `Authorization: Bearer <your_token>`
 #### 2. Login
 - **Method:** `POST`
 - **Path:** `/api/auth/login`
+- **Description:** Logs in an existing user. Accepts either the registered **email address or nickname** (case-insensitively).
 - **Request Body:**
   ```json
   {
@@ -168,7 +171,7 @@ Format: `Authorization: Bearer <your_token>`
 - **Method:** `GET`
 - **Path:** `/api/users/me`
 - **Headers:** `Authorization: Bearer <token>`
-- **Description:** Retrieves the user's base profile, their list of followers, and their aggregated Top 5 Movies.
+- **Description:** Retrieves the user's base profile, their lists of followers and following users, and their aggregated Top 5 Movies.
 - **Response (200 OK):**
   ```json
   {
@@ -188,7 +191,9 @@ Format: `Authorization: Bearer <your_token>`
         }
       ],
       "followers": [],
-      "follower_count": 0
+      "follower_count": 0,
+      "following": [],
+      "following_count": 0
     }
   }
   ```
@@ -212,11 +217,29 @@ Format: `Authorization: Bearer <your_token>`
 - **Method:** `POST`
 - **Path:** `/api/users/top-movies`
 - **Headers:** `Authorization: Bearer <token>`
-- **Description:** Overwrites the user's top 5 movies. The array order dictates their `position` (1 through 5).
-- **Request Body:**
+- **Description:** Overwrites the user's top 5 movies. The array order dictates their `position` (1 through 5). Supports both legacy array of movie IDs (`movie_ids`) and array of full movie objects (`movies`). If any movie doesn't exist in the database yet, it will be automatically inserted into the database first.
+- **Request Body Option A (Legacy IDs):**
   ```json
   {
     "movie_ids": ["scifi-avatar", "romcom-set-it-up", "horror-it"]
+  }
+  ```
+- **Request Body Option B (Full Movie Objects):**
+  ```json
+  {
+    "movies": [
+      {
+        "id": "horror-saw",
+        "title": "Saw",
+        "slogan": "Every piece has its puzzle.",
+        "description": "Two men wake up in a room...",
+        "release_year": 2004,
+        "director": "James Wan",
+        "actors": "Cary Elwes, Leigh Whannell",
+        "poster": "https://res.cloudinary.com/...",
+        "genre": "horror"
+      }
+    ]
   }
   ```
 - **Response (200 OK):**
@@ -260,6 +283,7 @@ Format: `Authorization: Bearer <your_token>`
         "director": "Adrian Lyne",
         "actors": "Tim Robbins, Elizabeth Peña",
         "poster_url": "https://res.cloudinary.com/...",
+        "poster": "https://res.cloudinary.com/...",
         "genre": "horror",
         "side": "left",
         "z": 10
@@ -312,12 +336,13 @@ Format: `Authorization: Bearer <your_token>`
 
 ---
 
-### UI Assets (Loading Backgrounds, Avatars, Videos)
+### UI Assets
 
-#### 1. Get All Assets
+#### 1. Get Assets
 - **Method:** `GET`
 - **Path:** `/api/assets`
-- **Description:** Returns every UI asset stored in the database (loading backgrounds, avatar skins, videos, favicon).
+- **Description:** Returns UI assets stored in the database (loading backgrounds, avatar skins, videos, favicon).
+- **Query Parameters:** `?prefix=images/loadingBackgrounds` (Optional. Returns only assets whose names start with the given prefix string, useful for filtering by category).
 - **Response (200 OK):**
   ```json
   {
@@ -340,7 +365,7 @@ Format: `Authorization: Bearer <your_token>`
 
 #### 2. Get Single Asset by Name
 - **Method:** `GET`
-- **Path:** `/api/assets/:name`
+- **Path:** `/api/assets/byname/:name`
 - **Description:** Returns a single asset by its exact name.
 - **Response (200 OK):**
   ```json
@@ -349,33 +374,6 @@ Format: `Authorization: Bearer <your_token>`
       "name": "images/loadingBackgrounds_horror_bg.png",
       "url": "https://res.cloudinary.com/..."
     }
-  }
-  ```
-
-#### 3. Get Assets by Category
-- **Method:** `GET`
-- **Path:** `/api/assets/category/:prefix`
-- **Description:** Returns all assets whose name starts with the given prefix. Useful for grabbing all loading backgrounds or all avatars at once.
-- **Example:** `GET /api/assets/category/images/loadingBackgrounds` returns all 3 loading backgrounds.
-- **Example:** `GET /api/assets/category/images/avatarsPFP` returns all avatar skins.
-- **Example:** `GET /api/assets/category/videos` returns all 4 accessory videos.
-- **Response (200 OK):**
-  ```json
-  {
-    "assets": [
-      {
-        "name": "images/loadingBackgrounds_horror_bg.png",
-        "url": "https://res.cloudinary.com/..."
-      },
-      {
-        "name": "images/loadingBackgrounds_romcom_bg.png",
-        "url": "https://res.cloudinary.com/..."
-      },
-      {
-        "name": "images/loadingBackgrounds_scifi_bg.png",
-        "url": "https://res.cloudinary.com/..."
-      }
-    ]
   }
   ```
 

@@ -47,6 +47,18 @@ router.get("/me", authenticateToken, async (req, res) => {
         user.followers = followersResult.rows;
         user.follower_count = followersResult.rows.length;
 
+        // grab who they are following
+        const followingResult = await pool.query(
+            `SELECT u.id, u.nickname, u.profile_picture_url 
+             FROM users u 
+             JOIN followers f ON u.id = f.following_id 
+             WHERE f.follower_id = $1`,
+            [userId]
+        );
+
+        user.following = followingResult.rows;
+        user.following_count = followingResult.rows.length;
+
         res.json({ user });
     } catch (error) {
         console.error("Error fetching user profile:", error);
@@ -90,23 +102,54 @@ router.put("/profile", authenticateToken, async (req, res) => {
 router.post("/top-movies", authenticateToken, async (req, res) => {
     try {
         const userId = req.user.id;
-        const { movie_ids } = req.body; // expecting an array of movie string IDs
+        const { movie_ids, movies } = req.body; // support both legacy movie_ids and new full movies array
 
-        if (!Array.isArray(movie_ids) || movie_ids.length > 5) {
-            return res.status(400).json({ error: "Please provide an array of up to 5 movie IDs" });
+        let moviesList = [];
+        if (Array.isArray(movies)) {
+            moviesList = movies;
+        } else if (Array.isArray(movie_ids)) {
+            moviesList = movie_ids.map(id => ({ id }));
+        } else {
+            return res.status(400).json({ error: "Please provide movies or movie_ids array" });
+        }
+
+        if (moviesList.length > 5) {
+            return res.status(400).json({ error: "Please provide up to 5 movies" });
+        }
+
+        // first, ensure all movies in the list are registered in the movies table
+        for (const movie of moviesList) {
+            const movieCheck = await pool.query("SELECT id FROM movies WHERE id = $1", [movie.id]);
+            if (movieCheck.rows.length === 0) {
+                // Movie doesn't exist, insert it!
+                await pool.query(
+                    `INSERT INTO movies (id, title, slogan, description, release_year, director, actors, poster_url, genre)
+                     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
+                    [
+                        movie.id,
+                        movie.title || 'Unknown Title',
+                        movie.slogan || '',
+                        movie.description || 'No description available.',
+                        parseInt(movie.release_year || movie.year || 0),
+                        movie.director || 'Unknown',
+                        movie.actors || 'Unknown',
+                        movie.poster_url || movie.poster || '',
+                        movie.genre || 'unknown'
+                    ]
+                );
+            }
         }
 
         // since they are updating the whole list, the easiest way is to delete their old list first
         await pool.query("DELETE FROM user_top_movies WHERE user_id = $1", [userId]);
 
         // then we insert the new ones with their positions
-        // we use a loop to insert each one
-        for (let i = 0; i < movie_ids.length; i++) {
-            const movieId = movie_ids[i];
+        for (let i = 0; i < moviesList.length; i++) {
+            const movie = moviesList[i];
             const position = i + 1;
             await pool.query(
                 "INSERT INTO user_top_movies (user_id, movie_id, position) VALUES ($1, $2, $3)",
-                [userId, movieId, position]
+                [userId, movie.id, position]
             );
         }
 
