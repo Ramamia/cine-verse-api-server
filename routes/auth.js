@@ -10,8 +10,8 @@ router.post("/register", async (req, res) => {
     try {
         const { email, password, nickname } = req.body;
 
-        // okay so first we gotta check if this user is already in the system yk
-        const userCheck = await pool.query("SELECT * FROM users WHERE email = $1", [email]);
+        // okay so first we gotta check if this user is already in the system yk case-insensitively
+        const userCheck = await pool.query("SELECT * FROM users WHERE LOWER(email) = LOWER($1)", [email]);
         if (userCheck.rows.length > 0) {
             return res.status(400).json({ error: "User already exists with that email" });
         }
@@ -50,10 +50,13 @@ router.post("/login", async (req, res) => {
     try {
         const { email, password } = req.body;
 
-        // alright lets find the user by their email first
-        const userResult = await pool.query("SELECT * FROM users WHERE email = $1", [email]);
+        // alright lets find the user by their email or nickname case-insensitively
+        const userResult = await pool.query(
+            "SELECT * FROM users WHERE LOWER(email) = LOWER($1) OR LOWER(nickname) = LOWER($2)",
+            [email, email]
+        );
         if (userResult.rows.length === 0) {
-            return res.status(401).json({ error: "Invalid email or password" });
+            return res.status(401).json({ error: "Invalid credentials. Check your email/nickname and password." });
         }
 
         const user = userResult.rows[0];
@@ -61,7 +64,7 @@ router.post("/login", async (req, res) => {
         // check if the password matches what we have hashed yk
         const isMatch = await bcrypt.compare(password, user.password_hash);
         if (!isMatch) {
-            return res.status(401).json({ error: "Invalid email or password" });
+            return res.status(401).json({ error: "Invalid credentials. Check your email/nickname and password." });
         }
 
         // give them a fresh token 

@@ -90,7 +90,7 @@ async function uploadAndSeed() {
                 console.log(`Uploading ${movie.title} poster to Cloudinary...`);
                 // blast it up to cloudinary
                 const result = await cloudinary.uploader.upload(localImagePath, {
-                    folder: `cineverse_posters/${genre}`
+                    folder: `images/${genre}Movies`
                 });
                 cloudUrl = result.secure_url;
                 console.log(`Successfully uploaded: ${cloudUrl}`);
