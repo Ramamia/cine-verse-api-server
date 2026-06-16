@@ -19,7 +19,7 @@ router.get("/", async (req, res) => {
                 u.profile_picture_url as user_avatar,
                 m.id as movie_id, 
                 m.title as movie_title, 
-                m.poster_path as movie_poster
+                m.poster_url as movie_poster
              FROM reviews r
              JOIN users u ON r.user_id = u.id
              JOIN movies m ON r.movie_id = m.id

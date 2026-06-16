@@ -47,6 +47,17 @@ router.get("/me", authenticateToken, async (req, res) => {
         user.followers = followersResult.rows;
         user.follower_count = followersResult.rows.length;
 
+        // grab their following list
+        const followingResult = await pool.query(
+            `SELECT u.id, u.nickname, u.profile_picture_url 
+             FROM users u 
+             JOIN followers f ON u.id = f.following_id 
+             WHERE f.follower_id = $1`,
+            [userId]
+        );
+
+        user.following = followingResult.rows;
+
         res.json({ user });
     } catch (error) {
         console.error("Error fetching user profile:", error);
