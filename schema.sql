@@ -23,7 +23,9 @@ CREATE TABLE movies (
   director VARCHAR(255),
   actors VARCHAR(255),
   poster_url VARCHAR(255),
-  genre VARCHAR(50)
+  genre VARCHAR(50),
+  side VARCHAR(50),
+  z INT
 );
 
 -- 3. User Top Movies Table (Many-to-Many)
@@ -49,4 +51,10 @@ CREATE TABLE followers (
   follower_id UUID REFERENCES users(id) ON DELETE CASCADE,
   following_id UUID REFERENCES users(id) ON DELETE CASCADE,
   PRIMARY KEY (follower_id, following_id)
+);
+
+-- 6. UI Assets Table (Key-Value Store for backgrounds/videos)
+CREATE TABLE ui_assets (
+  name VARCHAR(255) PRIMARY KEY,
+  url TEXT NOT NULL
 );
