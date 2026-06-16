@@ -26,7 +26,7 @@ This documentation provides frontend developers with comprehensive guidelines, e
 - **Runtime:** Node.js
 - **Framework:** Express.js
 - **Database:** PostgreSQL
-- **Authentication:** JSON Web Tokens (JWT) + Bcrypt password hashing
+- **Authentication:** JSON Web Tokens (JWT) + Bcryptjs password hashing
 - **Media Hosting:** Cloudinary
 
 ---
@@ -65,8 +65,8 @@ Ensure you have the following installed on your machine:
    ```
 
 3. **Database Initialization:**
-   Ensure your PostgreSQL server is running. Create a database named `cineverse`.
-   Run the SQL commands found in `schema.sql` to initialize the tables.
+    Ensure your PostgreSQL server is running. Create a database named `cineverse`.
+    Run the SQL commands found in `schema.sql` to initialize and seed the tables automatically.
 
 ---
 
