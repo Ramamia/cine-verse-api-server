@@ -12,10 +12,12 @@ router.get("/", async (req, res) => {
         // so if they passed a genre we filter by it otherwise just give them everything
         if (genre) {
             const moviesResult = await pool.query("SELECT * FROM movies WHERE genre = $1", [genre]);
-            res.json({ movies: moviesResult.rows });
+            const mapped = moviesResult.rows.map(m => ({ ...m, poster: m.poster_url }));
+            res.json({ movies: mapped });
         } else {
             const moviesResult = await pool.query("SELECT * FROM movies");
-            res.json({ movies: moviesResult.rows });
+            const mapped = moviesResult.rows.map(m => ({ ...m, poster: m.poster_url }));
+            res.json({ movies: mapped });
         }
     } catch (error) {
         console.error("error fetching movies:", error);

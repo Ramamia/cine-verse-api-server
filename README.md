@@ -312,6 +312,75 @@ Format: `Authorization: Bearer <your_token>`
 
 ---
 
+### UI Assets (Loading Backgrounds, Avatars, Videos)
+
+#### 1. Get All Assets
+- **Method:** `GET`
+- **Path:** `/api/assets`
+- **Description:** Returns every UI asset stored in the database (loading backgrounds, avatar skins, videos, favicon).
+- **Response (200 OK):**
+  ```json
+  {
+    "assets": [
+      {
+        "name": "images/loadingBackgrounds_horror_bg.png",
+        "url": "https://res.cloudinary.com/..."
+      },
+      {
+        "name": "images/loadingBackgrounds_romcom_bg.png",
+        "url": "https://res.cloudinary.com/..."
+      },
+      {
+        "name": "videos_cowboy.mp4",
+        "url": "https://res.cloudinary.com/..."
+      }
+    ]
+  }
+  ```
+
+#### 2. Get Single Asset by Name
+- **Method:** `GET`
+- **Path:** `/api/assets/:name`
+- **Description:** Returns a single asset by its exact name.
+- **Response (200 OK):**
+  ```json
+  {
+    "asset": {
+      "name": "images/loadingBackgrounds_horror_bg.png",
+      "url": "https://res.cloudinary.com/..."
+    }
+  }
+  ```
+
+#### 3. Get Assets by Category
+- **Method:** `GET`
+- **Path:** `/api/assets/category/:prefix`
+- **Description:** Returns all assets whose name starts with the given prefix. Useful for grabbing all loading backgrounds or all avatars at once.
+- **Example:** `GET /api/assets/category/images/loadingBackgrounds` returns all 3 loading backgrounds.
+- **Example:** `GET /api/assets/category/images/avatarsPFP` returns all avatar skins.
+- **Example:** `GET /api/assets/category/videos` returns all 4 accessory videos.
+- **Response (200 OK):**
+  ```json
+  {
+    "assets": [
+      {
+        "name": "images/loadingBackgrounds_horror_bg.png",
+        "url": "https://res.cloudinary.com/..."
+      },
+      {
+        "name": "images/loadingBackgrounds_romcom_bg.png",
+        "url": "https://res.cloudinary.com/..."
+      },
+      {
+        "name": "images/loadingBackgrounds_scifi_bg.png",
+        "url": "https://res.cloudinary.com/..."
+      }
+    ]
+  }
+  ```
+
+---
+
 ## Static Assets & Cloud Integration
 
 To prevent GitHub repository bloat, all 37 movie posters, 4 UI videos, 5 Avatar skins, and loading backgrounds have been migrated to Cloudinary.

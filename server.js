@@ -7,6 +7,7 @@ import authRoutes from "./routes/auth.js";
 import userRoutes from "./routes/users.js";
 import movieRoutes from "./routes/movies.js";
 import reviewRoutes from "./routes/reviews.js";
+import assetRoutes from "./routes/assets.js";
 
 dotenv.config();
 
@@ -22,6 +23,7 @@ app.use("/api/auth", authRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/movies", movieRoutes);
 app.use("/api/reviews", reviewRoutes);
+app.use("/api/assets", assetRoutes);
 
 // test endpoint just to make sure it works
 app.get("/", (req, res) => {
