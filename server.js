@@ -54,8 +54,8 @@ app.use((req, res) => {
 // listen here we connect to the db first then start the server
 pool.connect()
   .then(() => {
-    app.listen(PORT, () => {
-      console.log(`Server is running on http://localhost:${PORT}`);
+    app.listen(PORT, "0.0.0.0", () => {
+      console.log(`Server is running on port ${PORT} (0.0.0.0)`);
     });
   })
   .catch((err) => {
